@@ -103,3 +103,45 @@ SessionIQ consolidates all of this. **Coordinate. Document. Measure. All in one 
 - He is learning development as he goes — explanations of "why" matter as much as "what"
 - The goal is to build a real, sellable product, not just a prototype
 - He is currently an employee at Maltego, making that the first target customer
+
+## V1 Learnings
+
+General
+
+V1 is nice, but the UI is very generic and bland. I want to refine this and make the product feel unique and engaging. There are some design elements that are not perfect, like how close the section headers are to the left-side menu. Overall, though, I find the V1 UI easy to use and functional.
+
+Home
+
+This screen should be functional and also tell a story. It is currently designed as a "Team View," with a comprehensive overview. However, this would also be valuable as a "personal view," where this dashboard is focused on the currently signed-in user, reflecting similar widgets and statistics that are specific to that user (like their upcoming sessions, average CSAT, etc.)
+
+Calendar
+
+I like the V1 state. It is clean. The session view is also nice here.
+
+Session Templates
+
+This section works well. We don't need to track the number of this type of session delivered or upcoming in this section. That can be done in analytics if needed. There also doesn't need to be a Staff option here. Staff can be managed in the Staff section and during actual session creation. The email template creation is good, but I'd like the editor to be better. Perhaps this could be a pop-up for each email type (invitation, reminder, follow-up) that feels more robust.
+
+Session Tracker
+
+This section is really solid already. The design needs to be updated once we nail that down, but the functionality is strong.
+
+Staff
+
+This section is strong in the V1. No need for the Sync with Microsoft 365 button. This should be done in the Integrations section.
+
+Surveys
+
+This section is functional, but a bit weak. It should blow tools like NiceReply out of the water. Invest more time here.
+
+Integrations
+
+The V1 looks good, but very little time has been spent here. This will need work as we understand how this will actually work in practice.
+
+Analytics
+
+V1 looks fine. Additional work to be done here.
+
+New Session
+
+This is the section where a new session is created. This looks good overall, but what is critical is that this links to accounts in the CRM and that this allows the user to send internal and external invites to the attendees.
