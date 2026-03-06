@@ -5,14 +5,30 @@ import { NextResponse, type NextRequest } from 'next/server'
  * Updates the Supabase auth session on every request.
  *
  * WHY: Auth tokens expire. The Proxy runs before every page load and calls
- * getClaims()—which validates the JWT and refreshes it if needed. We must
- * use getClaims() (not getSession()) in server code because getSession()
- * doesn't validate the token; getClaims() verifies the JWT signature
- * against Supabase's public keys, so we can trust it.
+ * getClaims() which validates the JWT and refreshes it if needed.
  *
- * This function also protects routes: if there's no user and they're not
- * on /login or /auth/*, we redirect to login.
+ * IMPORTANT: The proxy only handles authentication (is the user logged in?).
+ * Authorization (superadmin checks, org membership checks) is handled by
+ * the page layouts, because middleware runs on the Edge runtime where
+ * Supabase RPC/DB calls can be unreliable.
+ *
+ * Route classification:
+ *   PUBLIC_ROUTES  - accessible without authentication (/login, /invite, /no-org)
+ *   AUTH_ROUTES    - auth infrastructure (/auth/callback)
+ *   Everything else - require authentication (layout handles role checks)
  */
+
+const PUBLIC_ROUTES = ['/login', '/invite', '/no-org']
+const AUTH_ROUTES = ['/auth']
+
+function isPublicRoute(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(route => pathname.startsWith(route))
+}
+
+function isAuthRoute(pathname: string): boolean {
+  return AUTH_ROUTES.some(route => pathname.startsWith(route))
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -44,25 +60,36 @@ export async function updateSession(request: NextRequest) {
   // random logouts.
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims
+  const pathname = request.nextUrl.pathname
 
-  // Redirect unauthenticated users to login (except for auth routes)
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/signup')
-  ) {
+  // -------------------------------------------------------
+  // UNAUTHENTICATED USERS
+  // -------------------------------------------------------
+  if (!user) {
+    // Allow public and auth routes through
+    if (isPublicRoute(pathname) || isAuthRoute(pathname)) {
+      return supabaseResponse
+    }
+    // Everything else redirects to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // If user is logged in and tries to access login/signup, redirect to home
-  if (user && (request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup'))) {
+  // -------------------------------------------------------
+  // AUTHENTICATED USERS
+  // -------------------------------------------------------
+
+  // Redirect away from /login (there is no /signup anymore)
+  if (pathname.startsWith('/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
   }
+
+  // All other authorization checks (superadmin, org membership)
+  // are handled by the page layouts which run in the Node.js runtime
+  // and can reliably query the database.
 
   return supabaseResponse
 }

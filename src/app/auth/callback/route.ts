@@ -18,7 +18,12 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const tokenHash = searchParams.get('token_hash')
   const type = searchParams.get('type')
-  const next = searchParams.get('next') ?? '/'
+  const rawNext = searchParams.get('next') ?? '/'
+
+  // SECURITY: Validate the redirect target to prevent open redirect attacks.
+  // Only allow relative paths starting with "/" — reject absolute URLs, protocol-relative
+  // URLs (//evil.com), and paths with encoded characters that could bypass checks.
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/'
 
   const supabase = await createClient()
 
